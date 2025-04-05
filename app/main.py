@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Generator
 
 
 class Dictionary:
@@ -99,22 +99,22 @@ class Dictionary:
         self._table[index] = None
         self._length -= 1
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         for entry in self._table:
             if entry is not None:
                 yield entry[0]
 
-    def items(self):
+    def items(self) -> Generator:
         for entry in self._table:
             if entry is not None:
                 yield entry
 
-    def values(self):
+    def values(self) -> Generator:
         for entry in self._table:
             if entry is not None:
                 yield entry[1]
 
-    def keys(self):
+    def keys(self) -> Generator:
         for entry in self._table:
             if entry is not None:
                 yield entry[0]
