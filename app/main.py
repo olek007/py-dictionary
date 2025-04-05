@@ -2,6 +2,9 @@ from typing import Any, Generator
 
 
 class Dictionary:
+
+    _DELETED = object()
+
     def __init__(self) -> None:
         self._length = 0
         self._table_size = 8
@@ -36,12 +39,12 @@ class Dictionary:
         self._length = 0
 
         for entry in old_table:
-            if entry is not None:
+            if entry and entry is not self._DELETED:
                 self._insert(*entry)
 
     def _insert(self, key: Any, value: Any) -> None:
         index = self._probe(key)
-        if self._table[index] is None:
+        if self._table[index] is None or self._table[index] is self._DELETED:
             self._length += 1
         self._table[index] = key, value
 
@@ -52,7 +55,8 @@ class Dictionary:
             entry = self._table[index]
             if entry is None:
                 continue
-            if entry[0] == key and hash(entry[0]) == hash(key):
+            if (entry is not self._DELETED
+                    and entry[0] == key and hash(entry[0]) == hash(key)):
                 return index
         return None
 
@@ -60,9 +64,9 @@ class Dictionary:
         start_index = hash(key) % self._table_size
         for i in range(self._table_size):
             index = (start_index + i) % self._table_size
-            if (self._table[index] is None
-                    or (self._table[index][0] == key
-                        and hash(self._table[index][0]) == hash(key))):
+            entry = self._table[index]
+            if (entry is None or entry is self._DELETED
+                    or entry[0] == key and hash(entry[0]) == hash(key)):
                 return index
         raise RuntimeError
 
@@ -80,7 +84,7 @@ class Dictionary:
         index = self._find_key(key)
         if index is not None:
             value = self._table[index][1]
-            self._table[index] = None
+            self._table[index] = self._DELETED
             self._length -= 1
             return value
         elif default is not ...:
@@ -96,25 +100,25 @@ class Dictionary:
         index = self._find_key(key)
         if index is None:
             raise KeyError
-        self._table[index] = None
+        self._table[index] = self._DELETED
         self._length -= 1
 
     def __iter__(self) -> Any:
         for entry in self._table:
-            if entry is not None:
+            if entry and entry is not self._DELETED:
                 yield entry[0]
 
     def items(self) -> Generator:
         for entry in self._table:
-            if entry is not None:
+            if entry and entry is not self._DELETED:
                 yield entry
 
     def values(self) -> Generator:
         for entry in self._table:
-            if entry is not None:
+            if entry and entry is not self._DELETED:
                 yield entry[1]
 
     def keys(self) -> Generator:
         for entry in self._table:
-            if entry is not None:
+            if entry and entry is not self._DELETED:
                 yield entry[0]
