@@ -29,7 +29,7 @@ class Dictionary:
     def __getitem__(self, key: Any) -> Any:
         index = self._find_key(key)
         if index is None:
-            raise KeyError
+            raise KeyError(f"Key not found: {key}")
         return self._table[index][1]
 
     def _resize(self) -> None:
@@ -68,7 +68,9 @@ class Dictionary:
             if (entry is None or entry is self._DELETED
                     or entry[0] == key and hash(entry[0]) == hash(key)):
                 return index
-        raise RuntimeError
+
+        # Can't happen
+        raise RuntimeError("Hash table is full")
 
     def clear(self) -> None:
         self._table = [None] * self._table_size
@@ -90,7 +92,7 @@ class Dictionary:
         elif default is not ...:
             return default
         else:
-            raise KeyError
+            raise KeyError(f"Key not found: {key}")
 
     def update(self, other: dict) -> None:
         for key, value in other:
@@ -99,7 +101,7 @@ class Dictionary:
     def __delitem__(self, key: Any) -> None:
         index = self._find_key(key)
         if index is None:
-            raise KeyError
+            raise KeyError(f"Key not found: {key}")
         self._table[index] = self._DELETED
         self._length -= 1
 
