@@ -25,6 +25,8 @@ class Dictionary:
 
     def __getitem__(self, key: Any) -> Any:
         index = self._find_key(key)
+        if index is None:
+            raise KeyError
         return self._table[index][1]
 
     def _resize(self) -> None:
@@ -43,7 +45,7 @@ class Dictionary:
             self._length += 1
         self._table[index] = key, value
 
-    def _find_key(self, key: Any) -> int:
+    def _find_key(self, key: Any) -> int | None:
         start_index = hash(key) % self._table_size
         for i in range(self._table_size):
             index = (start_index + i) % self._table_size
@@ -52,7 +54,7 @@ class Dictionary:
                 continue
             if entry[0] == key and hash(entry[0]) == hash(key):
                 return index
-        raise KeyError
+        return None
 
     def _probe(self, key: Any) -> int:
         start_index = hash(key) % self._table_size
@@ -63,3 +65,56 @@ class Dictionary:
                         and hash(self._table[index][0]) == hash(key))):
                 return index
         raise RuntimeError
+
+    def clear(self) -> None:
+        self._table = [None] * self._table_size
+        self._length = 0
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        index = self._find_key(key)
+        if index is None:
+            return default
+        return self._table[index][1]
+
+    def pop(self, key: Any, default: Any = ...) -> Any:
+        index = self._find_key(key)
+        if index is not None:
+            value = self._table[index][1]
+            self._table[index] = None
+            self._length -= 1
+            return value
+        elif default is not ...:
+            return default
+        else:
+            raise KeyError
+
+    def update(self, other: dict) -> None:
+        for key, value in other:
+            self[key] = value
+
+    def __delitem__(self, key: Any) -> None:
+        index = self._find_key(key)
+        if index is None:
+            raise KeyError
+        self._table[index] = None
+        self._length -= 1
+
+    def __iter__(self):
+        for entry in self._table:
+            if entry is not None:
+                yield entry[0]
+
+    def items(self):
+        for entry in self._table:
+            if entry is not None:
+                yield entry
+
+    def values(self):
+        for entry in self._table:
+            if entry is not None:
+                yield entry[1]
+
+    def keys(self):
+        for entry in self._table:
+            if entry is not None:
+                yield entry[0]
