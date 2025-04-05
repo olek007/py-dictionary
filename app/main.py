@@ -95,8 +95,12 @@ class Dictionary:
             raise KeyError(f"Key not found: {key}")
 
     def update(self, other: dict) -> None:
-        for key, value in other:
-            self[key] = value
+        if hasattr(other, "items"):
+            for key, value in other.items():
+                self[key] = value
+        else:
+            for key, value in other:
+                self[key] = value
 
     def __delitem__(self, key: Any) -> None:
         index = self._find_key(key)
